@@ -1,56 +1,53 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Максимальные значения для каждого круга
-    const maxValues = {
-        clicks: 10000000, // 10 миллионов
-        earned: 10000000, // 10 миллионов
-        referrals: 100, // 100 шт
-    };
+    const photo = document.querySelector('.clickable-photo');
+    const mainContent = document.querySelector('.main-content');
+    const balanceElement = document.createElement('div');
+    let balance = 0;
 
-    // Текущие значения для каждого круга
-    const currentValues = {
-        clicks: 5000000, // Пример текущих кликов
-        earned: 2000000, // Пример заработанного
-        referrals: 50, // Пример текущих рефералов
-    };
+    // Создаем и отображаем элемент баланса
+    balanceElement.className = 'balance-text';
+    balanceElement.id = 'coin-balance';
+    balanceElement.textContent = balance;
+    const balanceContainer = document.createElement('div');
+    balanceContainer.className = 'balance-container';
+    balanceContainer.appendChild(balanceElement);
+    mainContent.appendChild(balanceContainer);
 
-    function setProgress(circleId, currentValue) {
-        const maxValue = maxValues[circleId];
-        const percentage = (currentValue / maxValue) * 100;
-        const circle = document.querySelector(`#${circleId} .progress`);
-        const radius = circle.r.baseVal.value;
-        const circumference = 2 * Math.PI * radius;
-        const offset = circumference - (percentage / 100) * circumference;
-        
-        // Устанавливаем начальное значение
-        circle.style.strokeDashoffset = circumference;
+    photo.addEventListener('click', () => {
+        // Увеличиваем фото
+        photo.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+            photo.style.transform = 'scale(1)';
+        }, 200);
 
-        // Анимация заполнения круга с начального значения
-        let start = 0;
-        const interval = setInterval(() => {
-            const progress = Math.min(start + 1, percentage);
-            const progressOffset = circumference - (progress / 100) * circumference;
-            circle.style.strokeDashoffset = progressOffset;
-            start = progress;
+        // Обновляем баланс
+        balance += 1;
+        balanceElement.textContent = balance;
 
-            // Обновление текста внутри круга
-            const valueText = document.querySelector(`#${circleId} .progress-value`);
-            valueText.textContent = formatValue(start, circleId);
+        // Создаем новый элемент для текста
+        const popupText = document.createElement('div');
+        popupText.className = 'popup-text';
+        popupText.textContent = '+1';
+        mainContent.appendChild(popupText);
 
-            if (start >= percentage) {
-                clearInterval(interval);
-            }
-        }, 20); // Интервал анимации
-    }
+        // Вычисляем случайные позиции ниже экрана
+        const maxX = mainContent.clientWidth - popupText.offsetWidth;
+        const randomX = Math.random() * maxX;
 
-    function formatValue(value, circleId) {
-        if (circleId === 'referrals') {
-            return value;
-        } else {
-            return (value / 1000000).toFixed(1) + 'M';
-        }
-    }
+        // Начальная позиция текста ниже экрана
+        const startY = window.innerHeight; // Начинаем из нижнего края экрана
 
-    for (const [id, value] of Object.entries(currentValues)) {
-        setProgress(id, value);
-    }
+        // Устанавливаем начальные позиции и стили для анимации
+        popupText.style.left = `${randomX}px`;
+        popupText.style.top = `${startY}px`;
+        popupText.style.opacity = '1';
+        popupText.style.transform = 'translateY(-2600%)'; // Поднимаем текст вверх на 1000% высоты блока
+
+        // Возвращаем текст обратно после задержки
+        setTimeout(() => {
+            popupText.style.opacity = '0';
+            popupText.style.transform = 'translateY(-200%)'; // Оставляем текст в верхней позиции
+            setTimeout(() => mainContent.removeChild(popupText), 900); // Удаляем элемент из DOM после затухания
+        }, 600); // Задержка для завершения анимации
+    });
 });
